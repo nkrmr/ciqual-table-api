@@ -1,68 +1,70 @@
-const { router, get } = require('microrouter')
-const { send } = require('micro')
-const parse = require('obj-parse')
-const deepKeys = require('deep-keys')
-const micro = require('micro')
+const { ApolloServer, gql } = require("apollo-server");
+const initData = require("./data");
 
-const getData = require('./data')
+let data = null;
 
-let data = null
-
-console.info('Downloading data...')
-
-getData.then((d) => {
-  data = d
-  console.info('Server listening on port 3001')
-})
-
-const removeArrays = elem => {
-  if (Array.isArray(elem)) {
-    elem = [ ...elem ]
-  } else {
-    elem = { ...elem }
+const typeDefs = gql`
+  type Aliment {
+    alimCode: String
+    alimNomFr: String
+    alimNomIndexFr: String
+    alimNomEng: String
+    alimNomIndexEng: String
+    alimGrpCode: String
+    alimSsgrpCode: String
+    alimSsssgrpCode: String
+    composition(alimCode: String): [Composition]
   }
-  deepKeys(elem).forEach(key => {
-    const get = parse(key)
-    const set = parse(key).assign
-    if (Array.isArray(get(elem))) {
-      set(elem, get(elem)[0])
+
+  type Composition {
+    constCode: String
+    teneur: String
+    constNomFr: String
+    constNomEng: String
+  }
+
+  type Query {
+    aliment(code: Int): Aliment
+    aliments(nom: String, first: Int): [Aliment]
+  }
+`;
+
+const resolvers = {
+  Query: {
+    aliment: (_, { code }) => {
+      data.aliments.find(a => parseInt(a.alimCode.trim(), 10) === code);
+    },
+    aliments: (_, { nom, first }) => {
+      const result = data.aliments.filter(
+        a =>
+          a.alimNomFr.toUpperCase().includes(nom.toUpperCase()) ||
+          a.alimNomEng.toUpperCase().includes(nom.toUpperCase())
+      );
+
+      return first ? result.slice(0, first) : result;
     }
-  })
-  return elem
-}
-
-const alimentNutrients = (req, res) => {
-  const composition = data.compositionTable.TABLE.COMPO.filter(
-    element => parseInt(element.alim_code[0]) === parseInt(req.params.alimcode)
-  )
-  send(res, 200, composition.map(removeArrays))
-}
-
-const searchAliment = (req, res) => {
-  const keyWords = req.query.keywords.split(' ')
-
-  const aliments = removeArrays(data.alimentTable.TABLE.ALIM).filter(aliment => {
-    return keyWords.every(keyword => {
-      return aliment.alim_nom_fr.toLowerCase().includes(keyword.toLowerCase())
-      || aliment.alim_nom_eng.toLowerCase().includes(keyword.toLowerCase())
-    })
-  })
-  send(res, 200, aliments.map(removeArrays))
-}
-
-const cors = ( middleware ) => {
-  return (req, res, next) => {
-    res.setHeader(
-      'Access-Control-Allow-Origin',
-      '*'
-    )
-    middleware(req, res, next)
+  },
+  Aliment: {
+    composition: parent =>
+      data.compositions
+        .filter(c => c.alimCode.includes(parent.alimCode))
+        .map(c => ({
+          ...c,
+          ...data.constants.find(cons => cons.constCode.includes(c.constCode))
+        }))
   }
-}
+};
 
-const server = micro(cors(router(
-  get('/:alimcode/nutrients', alimentNutrients),
-  get('/search', searchAliment)
-)))
+/**
+ * Downloading CIQUAL data
+ */
+initData().then(d => {
+  data = d;
 
-server.listen(3001)
+  const server = new ApolloServer({ typeDefs, resolvers });
+
+  // launching Graphql server
+  server.listen({ port: 4001 }).then(({ url }) => {
+    console.log(`🚀  Server ready at ${url}`);
+  });
+});

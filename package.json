@@ -4,13 +4,21 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "apollo-server": "^2.9.7",
+    "camelcase-keys-deep": "^0.1.0",
     "deep-keys": "^0.5.0",
+    "eslint-config-prettier": "^6.5.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "graphql": "^14.5.8",
     "legacy-encoding": "^3.0.0",
-    "micro": "^9.1.0",
-    "microrouter": "^3.0.0",
     "obj-parse": "^0.3.0",
     "request": "^2.83.0",
     "unzipper": "^0.8.11",
     "xml2js": "^0.4.19"
+  },
+  "devDependencies": {
+    "eslint": "^6.6.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.18.2"
   }
 }
