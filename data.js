@@ -46,7 +46,7 @@ const getData = () =>
             default:
               break;
           }
-          parseString(tableToParse, (err, result) => {
+          parseString(tableToParse, { trim: true }, (err, result) => {
             if (err) {
               reject(err);
             }

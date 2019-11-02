@@ -10,9 +10,9 @@ function calcTeneur(value, teneur = "", unit = "g") {
     .from(unit)
     .to("g");
 
-  const parsedTeneur = parseFloat(teneur.trim().replace(",", "."), 10);
+  const parsedTeneur = parseFloat(teneur.replace(",", "."), 10);
 
-  if (!parsedTeneur) return teneur.trim();
+  if (!parsedTeneur) return teneur;
 
   return (covertedValue * parsedTeneur) / 100;
 }
@@ -46,7 +46,7 @@ const typeDefs = gql`
 const resolvers = {
   Query: {
     aliment: (_, { code }) => {
-      data.aliments.find(a => parseInt(a.alimCode.trim(), 10) === code);
+      data.aliments.find(a => parseInt(a.alimCode, 10) === code);
     },
     aliments: (_, { nom, first }) => {
       const result = data.aliments.filter(
