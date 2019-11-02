@@ -1,7 +1,21 @@
 const { ApolloServer, gql } = require("apollo-server");
+const convert = require("convert-units");
+
 const initData = require("./data");
 
 let data = null;
+
+function calcTeneur(value, teneur = "", unit = "g") {
+  const covertedValue = convert(value)
+    .from(unit)
+    .to("g");
+
+  const parsedTeneur = parseFloat(teneur.trim().replace(",", "."), 10);
+
+  if (!parsedTeneur) return teneur.trim();
+
+  return (covertedValue * parsedTeneur) / 100;
+}
 
 const typeDefs = gql`
   type Aliment {
@@ -13,7 +27,7 @@ const typeDefs = gql`
     alimGrpCode: String
     alimSsgrpCode: String
     alimSsssgrpCode: String
-    composition(alimCode: String): [Composition]
+    composition(alimCode: String, unit: String, value: Int): [Composition]
   }
 
   type Composition {
@@ -45,13 +59,28 @@ const resolvers = {
     }
   },
   Aliment: {
-    composition: parent =>
-      data.compositions
-        .filter(c => c.alimCode.includes(parent.alimCode))
-        .map(c => ({
-          ...c,
-          ...data.constants.find(cons => cons.constCode.includes(c.constCode))
-        }))
+    composition: (parent, req) => {
+      const { alimCode } = parent;
+      const { value, unit } = req;
+
+      return data.compositions
+        .filter(c => c.alimCode.includes(alimCode))
+        .map(c => {
+          // aggregate the current composition with his
+          // corresponding constants
+          const compo = {
+            ...c,
+            ...data.constants.find(cons => cons.constCode.includes(c.constCode))
+          };
+
+          // changing the teneur according to the given value
+          if (value) {
+            compo.teneur = calcTeneur(value, c.teneur, unit);
+          }
+
+          return compo;
+        });
+    }
   }
 };
 

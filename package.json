@@ -6,6 +6,7 @@
   "dependencies": {
     "apollo-server": "^2.9.7",
     "camelcase-keys-deep": "^0.1.0",
+    "convert-units": "^2.3.4",
     "deep-keys": "^0.5.0",
     "eslint-config-prettier": "^6.5.0",
     "eslint-plugin-prettier": "^3.1.1",
