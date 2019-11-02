@@ -1,9 +1,7 @@
 const { ApolloServer, gql } = require("apollo-server");
 const convert = require("convert-units");
 
-const initData = require("./data");
-
-let data = null;
+const data = require("./ciqual.json");
 
 function calcTeneur(value, teneur = "", unit = "g") {
   const covertedValue = convert(value)
@@ -84,16 +82,9 @@ const resolvers = {
   }
 };
 
-/**
- * Downloading CIQUAL data
- */
-initData().then(d => {
-  data = d;
+const server = new ApolloServer({ typeDefs, resolvers });
 
-  const server = new ApolloServer({ typeDefs, resolvers });
-
-  // launching Graphql server
-  server.listen({ port: 4001 }).then(({ url }) => {
-    console.log(`🚀  Server ready at ${url}`);
-  });
+// launching Graphql server
+server.listen({ port: 4001 }).then(({ url }) => {
+  console.log(`🚀  Server ready at ${url}`);
 });

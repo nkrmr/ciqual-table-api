@@ -5,6 +5,8 @@ const legacy = require("legacy-encoding");
 const parse = require("obj-parse");
 const deepKeys = require("deep-keys");
 const camelcaseKeysDeep = require("camelcase-keys-deep");
+const fs = require("fs");
+const path = require("path");
 
 const CIQUAL_TABLE_URL =
   "https://ciqual.anses.fr/cms/sites/default/files/inline-files/TableCiqual2017_XML_2017%2011%2021.zip";
@@ -87,6 +89,18 @@ const getData = () =>
       });
   });
 
+function writeTable(table, name) {
+  const filePath = path.join(__dirname, `./${name}.json`);
+
+  fs.writeFile(filePath, JSON.stringify(table), err => {
+    if (err) {
+      console.log(err);
+    }
+
+    console.log(`The ${name} file has been created.`);
+  });
+}
+
 function removeArrays(el) {
   let elem = null;
   if (Array.isArray(el)) {
@@ -104,7 +118,7 @@ function removeArrays(el) {
   return elem;
 }
 
-module.exports = function initData() {
+(function initData() {
   console.log("downloading data...");
 
   return getData().then(({ alimentTable, compositionTable, constantTable }) => {
@@ -123,10 +137,13 @@ module.exports = function initData() {
 
     console.log("...data parsed");
 
-    return {
-      aliments,
-      compositions,
-      constants
-    };
+    writeTable(
+      {
+        aliments,
+        compositions,
+        constants
+      },
+      "ciqual"
+    );
   });
-};
+})();
