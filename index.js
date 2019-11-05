@@ -1,19 +1,7 @@
 const { ApolloServer, gql } = require("apollo-server");
-const convert = require("convert-units");
 
 const data = require("./ciqual.json");
-
-function calcTeneur(value, teneur = "", unit = "g") {
-  const covertedValue = convert(value)
-    .from(unit)
-    .to("g");
-
-  const parsedTeneur = parseFloat(teneur.replace(",", "."), 10);
-
-  if (!parsedTeneur) return teneur;
-
-  return (covertedValue * parsedTeneur) / 100;
-}
+const { calcTeneur } = require("./utils");
 
 const typeDefs = gql`
   type Aliment {
@@ -36,7 +24,7 @@ const typeDefs = gql`
   }
 
   type Query {
-    aliment(code: Int): Aliment
+    aliment(code: String): Aliment
     aliments(nom: String, first: Int): [Aliment]
   }
 `;
@@ -44,7 +32,7 @@ const typeDefs = gql`
 const resolvers = {
   Query: {
     aliment: (_, { code }) => {
-      data.aliments.find(a => parseInt(a.alimCode, 10) === code);
+      return data.aliments.find(a => a.alimCode === code);
     },
     aliments: (_, { nom, first }) => {
       const result = data.aliments.filter(
@@ -62,13 +50,13 @@ const resolvers = {
       const { value, unit } = req;
 
       return data.compositions
-        .filter(c => c.alimCode.includes(alimCode))
+        .filter(c => c.alimCode === alimCode)
         .map(c => {
           // aggregate the current composition with his
           // corresponding constants
           const compo = {
             ...c,
-            ...data.constants.find(cons => cons.constCode.includes(c.constCode))
+            ...data.constants.find(cons => cons.constCode === c.constCode)
           };
 
           // changing the teneur according to the given value
