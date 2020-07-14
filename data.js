@@ -8,8 +8,7 @@ const camelcaseKeysDeep = require("camelcase-keys-deep");
 const fs = require("fs");
 const path = require("path");
 
-const CIQUAL_TABLE_URL =
-  "https://ciqual.anses.fr/cms/sites/default/files/inline-files/TableCiqual2017_XML_2017%2011%2021.zip";
+const CIQUAL_TABLE_URL = "https://ciqual.anses.fr/cms/sites/default/files/inline-files/XML_2020_07_07.zip";
 
 const getData = () =>
   new Promise((resolve, reject) => {
@@ -20,13 +19,13 @@ const getData = () =>
 
     request(CIQUAL_TABLE_URL)
       .pipe(unzip.Parse())
-      .on("entry", entry => {
+      .on("entry", (entry) => {
         const fileName = entry.path;
         if (
           ![
-            "alim_2017 11 21.xml",
-            "compo_2017 11 21.xml",
-            "const_2017 11 21.xml"
+            "alim_2020_07_07.xml",
+            "compo_2020_07_07.xml",
+            "const_2020_07_07.xml",
           ].includes(fileName)
         ) {
           entry.on("data", () => {});
@@ -36,30 +35,35 @@ const getData = () =>
           nbFinishedFiles += 1;
           let tableToParse = null;
           switch (fileName) {
-            case "alim_2017 11 21.xml":
+            case "alim_2020_07_07.xml":
               tableToParse = alimentTable;
               break;
-            case "compo_2017 11 21.xml":
+            case "compo_2020_07_07.xml":
               tableToParse = compositionTable;
               break;
-            case "const_2017 11 21.xml":
+            case "const_2020_07_07.xml":
               tableToParse = constantTable;
               break;
             default:
               break;
           }
-          parseString(tableToParse, { trim: true }, (err, result) => {
+
+          parseString(tableToParse.replace(/ & /g, ' &amp; ')
+                   .replace(/ < /g, ' &lt; ')
+                   .replace(/ > /g, ' &gt; ')
+                   .replace(/\(</g, '(&lt;')
+                   .replace(/\(>/g, '(&gt;'), { trim: true }, (err, result) => {
             if (err) {
               reject(err);
             }
             switch (fileName) {
-              case "alim_2017 11 21.xml":
+              case "alim_2020_07_07.xml":
                 alimentTable = result;
                 break;
-              case "compo_2017 11 21.xml":
+              case "compo_2020_07_07.xml":
                 compositionTable = result;
                 break;
-              case "const_2017 11 21.xml":
+              case "const_2020_07_07.xml":
                 constantTable = result;
                 break;
               default:
@@ -70,16 +74,16 @@ const getData = () =>
             }
           });
         });
-        const decode = value => legacy.decode(value, "windows-1252");
-        entry.on("data", chunk => {
+        const decode = (value) => legacy.decode(value, "windows-1252");
+        entry.on("data", (chunk) => {
           switch (fileName) {
-            case "alim_2017 11 21.xml":
+            case "alim_2020_07_07.xml":
               alimentTable += decode(chunk);
               break;
-            case "compo_2017 11 21.xml":
+            case "compo_2020_07_07.xml":
               compositionTable += decode(chunk);
               break;
-            case "const_2017 11 21.xml":
+            case "const_2020_07_07.xml":
               constantTable += decode(chunk);
               break;
             default:
@@ -92,7 +96,7 @@ const getData = () =>
 function writeTable(table, name) {
   const filePath = path.join(__dirname, `./${name}.json`);
 
-  fs.writeFile(filePath, JSON.stringify(table), err => {
+  fs.writeFile(filePath, JSON.stringify(table), (err) => {
     if (err) {
       console.log(err);
     }
@@ -108,7 +112,7 @@ function removeArrays(el) {
   } else {
     elem = { ...el };
   }
-  deepKeys(elem).forEach(key => {
+  deepKeys(elem).forEach((key) => {
     const get = parse(key);
     const set = parse(key).assign;
     if (Array.isArray(get(elem))) {
@@ -141,7 +145,7 @@ function removeArrays(el) {
       {
         aliments,
         compositions,
-        constants
+        constants,
       },
       "ciqual"
     );

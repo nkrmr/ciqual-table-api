@@ -16,7 +16,7 @@
     "obj-parse": "^0.3.0",
     "request": "^2.83.0",
     "unzipper": "^0.8.11",
-    "xml2js": "^0.4.19"
+    "xml2js": "0.4.23"
   },
   "devDependencies": {
     "eslint": "^6.6.0",
