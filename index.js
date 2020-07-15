@@ -36,9 +36,10 @@ const resolvers = {
     },
     aliments: (_, { nom, first }) => {
       const result = data.aliments.filter(
-        (a) =>
-          a.alimNomFr.toUpperCase().includes(nom.toUpperCase()) ||
-          a.alimNomEng.toUpperCase().includes(nom.toUpperCase())
+        (a) => {
+          let pattern = new RegExp('^OEUF')
+          return a.alimNomFr.toUpperCase().match(pattern);
+        }
       );
 
       return first ? result.slice(0, first) : result;
