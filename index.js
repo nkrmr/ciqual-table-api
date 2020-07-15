@@ -32,17 +32,17 @@ const typeDefs = gql`
 const resolvers = {
   Query: {
     aliment: (_, { code }) => {
-      return data.aliments.find(a => a.alimCode === code);
+      return data.aliments.find((a) => a.alimCode === code);
     },
     aliments: (_, { nom, first }) => {
       const result = data.aliments.filter(
-        a =>
+        (a) =>
           a.alimNomFr.toUpperCase().includes(nom.toUpperCase()) ||
           a.alimNomEng.toUpperCase().includes(nom.toUpperCase())
       );
 
       return first ? result.slice(0, first) : result;
-    }
+    },
   },
   Aliment: {
     composition: (parent, req) => {
@@ -50,13 +50,13 @@ const resolvers = {
       const { value, unit } = req;
 
       return data.compositions
-        .filter(c => c.alimCode === alimCode)
-        .map(c => {
+        .filter((c) => c.alimCode === alimCode)
+        .map((c) => {
           // aggregate the current composition with his
           // corresponding constants
           const compo = {
             ...c,
-            ...data.constants.find(cons => cons.constCode === c.constCode)
+            ...data.constants.find((cons) => cons.constCode === c.constCode),
           };
 
           // changing the teneur according to the given value
@@ -66,13 +66,13 @@ const resolvers = {
 
           return compo;
         });
-    }
-  }
+    },
+  },
 };
 
 const server = new ApolloServer({ typeDefs, resolvers });
 
 // launching Graphql server
-server.listen({ port: 4001 }).then(({ url }) => {
+server.listen().then(({ url }) => {
   console.log(`🚀  Server ready at ${url}`);
 });

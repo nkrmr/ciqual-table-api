@@ -8,7 +8,7 @@ const camelcaseKeysDeep = require("camelcase-keys-deep");
 const fs = require("fs");
 const path = require("path");
 
-const CIQUAL_TABLE_URL = "https://ciqual.anses.fr/cms/sites/default/files/inline-files/XML_2020_07_07.zip";
+const CIQUAL_TABLE_URL = "http://localhost:3000/xmlFiles/XML_2020_07_07.zip";
 
 const getData = () =>
   new Promise((resolve, reject) => {
@@ -48,11 +48,13 @@ const getData = () =>
               break;
           }
 
-          parseString(tableToParse.replace(/ & /g, ' &amp; ')
-                   .replace(/ < /g, ' &lt; ')
-                   .replace(/ > /g, ' &gt; ')
-                   .replace(/\(</g, '(&lt;')
-                   .replace(/\(>/g, '(&gt;'), { trim: true }, (err, result) => {
+          // .replace(/ & /g, ' &amp; ')
+          // .replace(/ < /g, ' &lt; ')
+          // .replace(/ > /g, ' &gt; ')
+          // .replace(/\(</g, '(&lt;')
+          // .replace(/\(>/g, '(&gt;')
+
+          parseString(tableToParse, { trim: true }, (err, result) => {
             if (err) {
               reject(err);
             }
