@@ -1,0 +1,17 @@
+version: 1
+
+pullRequestPreviewsEnabled: true
+pullRequestPreviewsExpireAfterDays: 15
+
+services:
+# Ciqual API
+- type: web
+  name: lesfoodcuisine-ciqual
+  env: node
+  plan: Starter
+  region: frankfurt
+  healthCheckPath: /
+  buildCommand: yarn
+  startCommand: yarn start
+  autoDeploy: false
+
